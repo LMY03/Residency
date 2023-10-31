@@ -1,11 +1,14 @@
 const csvp = require('csv-parser');
 const fs = require('fs');
 
+const tool = require('./tool');
+
 const csv = {
     memberPath: './public/csv/members.csv',
     recordPath: './public/csv/records.csv',
     members: [],
     records: [],
+    dailyRecords: [],
     append: function(path, dataToAppend) {
         fs.readFile(path, 'utf8', (err, fileData) => {
             if (err) {
@@ -58,6 +61,10 @@ const csv = {
                 }
             });
         });
+    },
+    
+    hasRecord: function(list, recordToCheck) {
+        return list.some((record) => record.ID === recordToCheck.ID);
     }
 }
 
@@ -75,7 +82,17 @@ function initialize(list, path) {
     });
 }
 
+function loadDailyCSV() {
+    fs.createReadStream(csv.recordPath)
+        .pipe(csvp())
+        .on('data', (data) => {
+            if (data.Date == tool.getDate()) 
+                if (!csv.hasRecord(csv.dailyRecords, data)) csv.dailyRecords.push(data);
+        });
+}
+
 initialize(csv.members, csv.memberPath);
 initialize(csv.records, csv.recordPath);
+loadDailyCSV();
 
 module.exports = csv;

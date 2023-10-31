@@ -1,18 +1,14 @@
 const express = require('express');
-const app = express();
+const router = express();
 
 const residency = require('./controller/residency.js');
-const login = require('./controller/login.js');
 const report = require('./controller/report.js');
 
-app.get('/', residency.render);
-app.post('/clockIn', residency.run);
+router.get('/', residency.render);
+router.post('/clock', residency.run);
 
-app.get('/get-time', residency.time);
+router.get('/get-time', residency.time);
 
-app.get('/login', login.render);
-app.post('/loggingin', login.validate);
+router.get('/report', report.render);
 
-app.get('/report', report.render);
-
-module.exports = app;
+module.exports = router;

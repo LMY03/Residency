@@ -5,7 +5,11 @@ const tool = require('./tool');
 
 const residency = {
     render: function(req, res) {
-        res.render('index');
+        let dailyRecords = leftJoin(csv.members, csv.dailyRecords, tool.getDate(), tool.getDate());
+        sort(dailyRecords);
+        dailyRecords.reverse();
+        dailyRecords = dailyRecords.slice(0, 6);
+        res.render('index', {dailyRecords});
     },
     time: function(req, res) {
         const time = tool.getTime();
@@ -22,17 +26,61 @@ const residency = {
     }
 }
 
+function sort(records) {
+    records.sort((a, b) => {
+        const aTime = a.ClockOutTime || a.ClockInTime;
+        const bTime = b.ClockOutTime || b.ClockInTime;
+        return aTime.localeCompare(bTime);
+    });
+}
+
+function leftJoin(members, records, startDate, endDate) {
+    const result = [];
+
+    for (const record of records) {
+      // Check if the record's date is within the specified range
+      if (record.Date >= startDate && record.Date <= endDate) {
+        const matchingMember = members.find((member) => member.ID == record.ID );
+        if (matchingMember) {
+            // Combine record and member data
+            const combinedData = { ...matchingMember, ...record };
+            if (combinedData.Position === "Kasapi" || combinedData.Position === 'Senyor na Kasapi' || combinedData.Position === 'Korespondente') combinedData.Position += ' ng ' + combinedData.Section;
+            result.push(combinedData);
+        }
+      }
+    }
+    return result;
+  }
+
 function clockOut(id) {
     console.log("clockout");
+    const date = tool.getDate();
+    const clockOutTime = tool.getTime();
+    const indexToMove = csv.dailyRecords.findIndex((record) => record.ID == id);
+    if (indexToMove !== -1) {
+        // Remove the record from its current position
+        const recordToMove = csv.dailyRecords.splice(indexToMove, 1)[0];
+        recordToMove.ClockOutTime = clockOutTime;
+        
+        // Push the record to the end of the array
+        csv.dailyRecords.push(recordToMove);
+    }
     csv.edit(csv.recordPath, function(records) {
-        const targetRow = records.find(row => row.ID === id && row.Date == tool.getDate());
-        if (targetRow) targetRow.ClockOutTime = tool.getTime();
+        const targetRow = records.find(row => row.ID === id && row.Date == date);
+        if (targetRow) targetRow.ClockOutTime = clockOutTime;
     });
 }
 
 function clockIn(id) {
     console.log("clockin");
-    csv.append(csv.recordPath, id + "," + tool.getDate() + "," + tool.getTime());
+    const date = tool.getDate();
+    const time = tool.getTime();
+    csv.dailyRecords.push({
+        ID: id, 
+        Date: date,
+        ClockInTime: time,
+    })
+    csv.append(csv.recordPath, id + "," + date + "," + time);
 }
 
 function hasMember(id, members) {

@@ -1,4 +1,24 @@
 const tool = {
+    combineArrays: function(records, members) {
+        const combinedData = [];
+      
+        for (const record of records) {
+            const matchingMember = members.find((member) => member.ID === record.ID);
+
+            if (matchingMember) {
+                matchingMember.ID = record.ID;
+                const combinedEntry = {
+                ...record,
+                Name: matchingMember.Name,
+                Position: matchingMember.Position,
+                Section: matchingMember.Section,
+                };
+                combinedData.push(combinedEntry);
+            }
+        }
+      
+        return combinedData;
+    },
     getTime: function() {
         const currentTime = new Date();
     

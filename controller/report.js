@@ -8,9 +8,8 @@ const report = {
         csv.records;
         list = csv.members;
         res.render('report', {
-            list
+            
         });
     }
 }
-
 module.exports = report;
