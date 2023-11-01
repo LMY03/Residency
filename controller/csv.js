@@ -29,6 +29,7 @@ const csv = {
             });
         });
     },
+
     edit: function(path, func) {
         fs.readFile(path, 'utf8', (err, fileData) => {
             if (err) {
@@ -63,8 +64,8 @@ const csv = {
         });
     },
     
-    hasRecord: function(list, recordToCheck) {
-        return list.some((record) => record.ID === recordToCheck.ID);
+    findRecord: function(list, recordToCheck) {
+        return list.find((record) => record.ID === recordToCheck.ID);
     }
 }
 
@@ -87,7 +88,7 @@ function loadDailyCSV() {
         .pipe(csvp())
         .on('data', (data) => {
             if (data.Date == tool.getDate()) 
-                if (!csv.hasRecord(csv.dailyRecords, data)) csv.dailyRecords.push(data);
+                if (!csv.findRecord(csv.dailyRecords, data)) csv.dailyRecords.push(data);
         });
 }
 

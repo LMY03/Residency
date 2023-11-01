@@ -5,11 +5,13 @@ const tool = require('./tool');
 
 const residency = {
     render: function(req, res) {
-        let dailyRecords = leftJoin(csv.members, csv.dailyRecords, tool.getDate(), tool.getDate());
+        let dailyRecords = tool.leftJoin(csv.members, csv.dailyRecords, tool.getDate(), tool.getDate());
         sort(dailyRecords);
         dailyRecords.reverse();
         dailyRecords = dailyRecords.slice(0, 6);
-        res.render('index', {dailyRecords});
+        res.render('index', {
+            dailyRecords
+        });
     },
     time: function(req, res) {
         const time = tool.getTime();
@@ -33,24 +35,6 @@ function sort(records) {
         return aTime.localeCompare(bTime);
     });
 }
-
-function leftJoin(members, records, startDate, endDate) {
-    const result = [];
-
-    for (const record of records) {
-      // Check if the record's date is within the specified range
-      if (record.Date >= startDate && record.Date <= endDate) {
-        const matchingMember = members.find((member) => member.ID == record.ID );
-        if (matchingMember) {
-            // Combine record and member data
-            const combinedData = { ...matchingMember, ...record };
-            if (combinedData.Position === "Kasapi" || combinedData.Position === 'Senyor na Kasapi' || combinedData.Position === 'Korespondente') combinedData.Position += ' ng ' + combinedData.Section;
-            result.push(combinedData);
-        }
-      }
-    }
-    return result;
-  }
 
 function clockOut(id) {
     console.log("clockout");
